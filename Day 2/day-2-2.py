@@ -3,6 +3,7 @@ from pathlib import Path
 reports: list[list[int]] = []
 
 input_file = Path(__file__).parent / "input.txt"
+# input_file = Path(__file__).parent / "test_input.txt"
 with input_file.open() as f:
     for line in f:
         report = line.split()
@@ -10,53 +11,56 @@ with input_file.open() as f:
 
 safe_reports = 0
 
-for report in reports:
+
+def unsafe_index(report: list[int]) -> int | None:
     last_diff = None
     last_elem_idx = len(report) - 1
-    first_error = True
-    for i in range(len(report)):
+    for i, level in enumerate(report):
         if i == last_elem_idx:
-            safe_reports += 1
+            return None
         else:
-            diff = report[i] - report[i + 1]
+            diff = level - report[i + 1]
 
             if (
                 last_diff is not None and
                 (diff * last_diff) < 0
             ):
-                if first_error:
-                    first_error = False
-                    i = 0
-                else:
-                    break  # unsafe, one ascending, one descending
+                return i  # unsafe, one ascending, one descending
 
             if (
                 diff == 0 or
                 diff > 3 or
                 diff < -3
             ):
-                break  # unsafe
+                return i  # unsafe
 
             last_diff = diff
 
+
+for report in reports:
+    unsafe_idx = unsafe_index(report)
+    if unsafe_idx is None:
+        safe_reports += 1
+        continue
+
+    report_copy = report[:]
+    del report_copy[unsafe_idx]
+    if unsafe_index(report_copy) is None:
+        safe_reports += 1
+        continue
+
+    report_copy = report[:]
+    if unsafe_idx > 0:
+        del report_copy[unsafe_idx - 1]
+        if unsafe_index(report_copy) is None:
+            safe_reports += 1
+            continue
+
+    report_copy = report[:]
+    if unsafe_idx < len(report) - 1:
+        del report_copy[unsafe_idx + 1]
+        if unsafe_index(report_copy) is None:
+            safe_reports += 1
+            continue
+
 print(safe_reports)
-
-
-# for i in range(len(somelist) - 1, -1, -1):
-#     element = somelist[i]
-#     do_action(element)
-#     if check(element):
-#         del somelist[i]
-
-# i = 0
-# n = len(somelist)
-# while i < n:
-#     element = somelist[i]
-#     do_action(element)
-#     if check(element):
-#         del somelist[i]
-#         n = n - 1
-#     else:
-#         i = i + 1
-
-# reversed(range(len(somelist)))
